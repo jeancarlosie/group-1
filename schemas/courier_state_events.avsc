@@ -1,1 +1,59 @@
-
+{
+  "type": "record",
+  "name": "CourierStateEvent",
+  "namespace": "com.fooddelivery.events",
+  "doc": "Represents real-time courier status and availability events",
+  "fields": [
+    {
+      "name": "schema_version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "event_id",
+      "type": "string"
+    },
+    {
+      "name": "event_type",
+      "type": {
+        "type": "enum",
+        "name": "CourierEventType",
+        "symbols": [
+          "ONLINE",
+          "OFFLINE",
+          "LOCATION_UPDATE",
+          "ARRIVED_RESTAURANT",
+          "PICKED_UP_ORDER",
+          "ARRIVED_CUSTOMER"
+        ]
+      }
+    },
+    {
+      "name": "courier_id",
+      "type": "string"
+    },
+    {
+      "name": "order_id",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "zone_id",
+      "type": "string"
+    },
+    {
+      "name": "event_time",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "ingest_time",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    }
+  ]
+}
