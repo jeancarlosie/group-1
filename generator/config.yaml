@@ -1,1 +1,18 @@
+# Simulation configuration
 
+zones: 5
+restaurants_per_zone: 20
+couriers: 50
+
+simulation_minutes: 10
+
+base_orders_per_minute: 5
+
+lunch_peak_multiplier: 2.0
+dinner_peak_multiplier: 2.5
+
+cancellation_probability: 0.1
+duplicate_probability: 0.05
+late_event_probability: 0.1
+missing_step_probability: 0.05
+anomaly_probability: 0.05
