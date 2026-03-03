@@ -1,1 +1,70 @@
-
+{
+  "type": "record",
+  "name": "OrderEvent",
+  "namespace": "com.fooddelivery.events",
+  "doc": "Represents lifecycle events of a food delivery order",
+  "fields": [
+    {
+      "name": "schema_version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "event_id",
+      "type": "string"
+    },
+    {
+      "name": "event_type",
+      "type": {
+        "type": "enum",
+        "name": "OrderEventType",
+        "symbols": [
+          "ORDER_CREATED",
+          "RESTAURANT_ACCEPTED",
+          "PREP_STARTED",
+          "PREP_DONE",
+          "COURIER_ASSIGNED",
+          "PICKED_UP",
+          "DELIVERED",
+          "CANCELLED"
+        ]
+      }
+    },
+    {
+      "name": "order_id",
+      "type": "string"
+    },
+    {
+      "name": "restaurant_id",
+      "type": "string"
+    },
+    {
+      "name": "courier_id",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "zone_id",
+      "type": "string"
+    },
+    {
+      "name": "order_value",
+      "type": ["null", "double"],
+      "default": null
+    },
+    {
+      "name": "event_time",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "ingest_time",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    }
+  ]
+}
