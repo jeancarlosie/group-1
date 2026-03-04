@@ -1,10 +1,11 @@
 # group-1
 ## Project Structure
+```
 ├── generator
-│   ├── README.md        # README file exclusively created for the generator, the general README.md can be found below (if you are here you have already located it)
+│   ├── README.md        # README file exclusively created for the generator, the general README.md can be found below
 │   ├── config.yaml
 │   ├── generate.py
-│   ├── requirements.txt
+│   └── requirements.txt
 ├── samples              # Sample JSON and AVRO batches for inspection
 │   ├── avro
 │   │   └── .gitkeep
@@ -15,3 +16,4 @@
 │   └── order_events.avsc
 ├── docs                 # Detailed design notes and justification (missing)
 └── README.md
+```
