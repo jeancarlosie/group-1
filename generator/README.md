@@ -62,3 +62,60 @@ The generator deliberately injects the following data quality issues to simulate
 ## Output
 
 Running the script generates the following files:
+
+samples/
+├── json/
+│   ├── order_events_sample.jsonl
+│   └── courier_state_events_sample.jsonl
+└── avro/
+    ├── order_events_sample.avro
+    └── courier_state_events_sample.avro
+
+Avro serialization uses schemas defined in `../schemas/order_events.avsc` and `../schemas/courier_state_events.avsc`.
+
+---
+
+## Usage
+
+### Install dependencies
+
+pip install -r requirements.txt
+
+### Run the generator
+
+python generate.py
+
+Output files will be written to `../samples/json/` and `../samples/avro/`.
+
+---
+
+## Event Schema
+
+### Order Event Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `schema_version` | int | Schema version number |
+| `event_id` | string (UUID) | Unique identifier for this event |
+| `event_type` | string | One of: `ORDER_CREATED`, `RESTAURANT_ACCEPTED`, `CANCELLED`, `PREP_DONE`, `COURIER_ASSIGNED`, `PICKED_UP`, `DELIVERED` |
+| `order_id` | string (UUID) | Identifier of the order |
+| `restaurant_id` | string | Restaurant that received the order |
+| `courier_id` | string / null | Assigned courier (null before assignment) |
+| `zone_id` | string | Geographic zone of the order |
+| `order_value` | float | Monetary value of the order (€10–€50) |
+| `event_time` | long (ms) | Logical time the event occurred |
+| `ingest_time` | long (ms) | Time the event was ingested (may be late) |
+
+### Courier State Event Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `schema_version` | int | Schema version number |
+| `event_id` | string (UUID) | Unique identifier for this event |
+| `event_type` | string | One of: `ONLINE`, `ARRIVED_RESTAURANT`, `PICKED_UP_ORDER`, `ARRIVED_CUSTOMER`, `OFFLINE` |
+| `courier_id` | string | Courier identifier |
+| `order_id` | string / null | Associated order (null for `ONLINE` / `OFFLINE`) |
+| `zone_id` | string | Geographic zone |
+| `event_time` | long (ms) | Logical time the event occurred |
+| `ingest_time` | long (ms) | Time the event was ingested (may be late) |
+
