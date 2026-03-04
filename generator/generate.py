@@ -75,8 +75,10 @@ for minute in range(config["simulation_minutes"]):
 
         order_id = str(uuid.uuid4())
         restaurant_id = random.choice(restaurants)
-        zone_id = restaurant_id.split("_")[1]
+        zone_number = restaurant_id.split("_")[2]
+        zone_id = f"zone_{zone_number}"
         courier_id = random.choice(couriers)
+        order_value = round(random.uniform(10, 50), 2)
 
         # ---- Durations ----
         prep_minutes = random.randint(5, 20)
@@ -114,7 +116,7 @@ for minute in range(config["simulation_minutes"]):
                 "restaurant_id": restaurant_id,
                 "courier_id": courier,
                 "zone_id": zone_id,
-                "order_value": round(random.uniform(10, 50), 2),
+                "order_value": order_value,
                 "event_time": millis(event_time),
                 "ingest_time": millis(ingest_time)
             }
