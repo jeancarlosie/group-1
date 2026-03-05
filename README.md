@@ -1,4 +1,4 @@
-# group-1
+# Food Delivery Real-time Analytics Pipeline
 ## Project Structure
 ```
 ├── generator
@@ -16,4 +16,8 @@
 │   └── order_events.avsc
 ├── docs                 # Detailed design notes and justification (missing)
 └── README.md
+
+##Team Structure
+Team 
+
 ```
