@@ -4,32 +4,31 @@
 > We are charlie kirk (change this depending on implementation)
 
 ## General Project Overview
-```
 On-demand food delivery platforms such as Uber Eats, Glovo, and Deliveroo operate as real-time marketplaces where the following occurs:
-1) customers place orders
-2) restaurants prepare meals
-3) couriers deliver
-4) the platform continuously optimizes dispatch
+1) Customers place orders
+2) Restaurants prepare meals
+3) Couriers deliver
+4) The platform continuously optimizes dispatch
 5) ETAs
-6) cancellations
-7) operational health
+6) Cancellations
+7) Operational health
 
 Our project simulates the aforementioned ecosystem by utilizing two streaming event feeds
-and generating synthetic JSON + AVRO events with realistic patterns and edge cases
+and generating synthetic **JSON + AVRO** events with realistic patterns and edge cases
 
-The feeds are designed for the following purposes:
-- event-time processing
-- late data handling
-- windowed analytics
-- forming the foundation for a real-time analytics pipeline using Spark Structured Streaming
-    *Fourth point will not be present until Milestone 2
+The **two feeds** are designed for the following purposes:
+- Event-time processing
+- Late data handling
+- Windowed analytics
+- Forming the foundation for a real-time analytics pipeline using Spark Structured Streaming
+    **Fourth point will not be present until Milestone 2*
 
-This current delivery for the project's first milesone will include
+**This current delivery for the project's first milesone will include:**
 - Two distinct event streams modeling demand and supply
 - AVRO schemas for both streams (with enums, optional fields, and schema_version)
 - Configurable Python generator producing JSONL and AVRO samples
 - Realistic streaming edge cases (late, duplicates, missing steps, anomalies)
-```
+
 
 ## Team Structure
 ```
