@@ -134,6 +134,27 @@ The generator supports:
 - Randomized prep and delivery durations
 - Order value distribution (uniform in current version)
 
+##Temporal Demand Modeling (Weekday vs Weekend)
+- The generator explicitly models temporal demand variation:
+- Lunch peak multiplier (11:00–14:00)
+- Dinner peak multiplier (18:00–21:00)
+- Additional weekend demand boost (weekday >= 5)
+- Optional promotional surge periods
+
+The simulation start day is configurable via:
+start_weekday (0 = Monday, 6 = Sunday)
+
+To demonstrate weekday vs weekend differences:
+- Set start_weekday: 2 (Wednesday) → weekday behavior
+- Set start_weekday: 6 (Sunday) → weekend behavior
+
+Weekend simulations produce higher demand due to the additional multiplier, resulting in:
+Increased orders per minute
+More courier assignments
+Higher total event volume
+
+For milestone validation, datasets can be generated under both configurations to illustrate temporal behavior differences.
+
 ### Streaming Correctness Edge Cases
 To demonstrate watermarking, deduplication, and event-time correctness later, we inject:
 - **Late/out-of-order events** (`late_event_probability`)
