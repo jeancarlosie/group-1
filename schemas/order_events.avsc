@@ -15,6 +15,12 @@
       "type": "string"
     },
     {
+      "name": "event_sequence",
+      "type": ["null", "int"],
+      "default": null,
+      "doc": "Per-order sequence number for validation and anomaly detection"
+    },
+    {
       "name": "event_type",
       "type": {
         "type": "enum",
