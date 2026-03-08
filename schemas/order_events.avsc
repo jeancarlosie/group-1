@@ -41,8 +41,7 @@
     },
     {
       "name": "courier_id",
-      "type": ["null", "string"],
-      "default": null
+      "type": "string"
     },
     {
       "name": "order_value",
