@@ -176,3 +176,63 @@ To demonstrate watermarking, deduplication, and event-time correctness later, we
 ### Install dependencies
 ```bash
 pip install fastavro pyyaml
+
+### Configure the Simulation
+generator/config.yaml
+
+You can modify:
+- Core simulation parameters
+- simulation_minutes → total duration of the simulation
+- base_orders_per_minute → baseline demand rate
+- zones, restaurants_per_zone, couriers → platform scale
+
+Demand shaping
+- lunch_peak_multiplier
+- dinner_peak_multiplier
+- promo_probability
+- promo_multiplier
+- zone_demand_weights
+- Streaming edge-case probabilities
+- late_event_probability
+- duplicate_probability
+- missing_step_probability
+- anomaly_probability
+- cancellation_probability
+- courier_offline_probability
+
+Reproducible timing
+- start_hour
+- start_weekday
+
+### Run the generator
+python generator/generate.py
+
+This will:
+- Load configuration from config.yaml
+- Load AVRO schemas from /schemas
+- Simulate order + courier activity
+- Inject streaming edge cases
+- Generate JSONL and AVRO outputs
+- Sort events by ingest_time to simulate broker arrival order
+
+### Output files
+After execution, sample data is written to:
+
+samples/
+├── json/
+│   ├── order_events_sample.jsonl
+│   └── courier_state_events_sample.jsonl
+└── avro/
+    ├── order_events_sample.avro
+    └── courier_state_events_sample.avro
+
+JSONL Format
+- One event per line
+- Useful for manual inspection and quick ingestion testing
+
+AVRO Format
+- Schema-enforced using /schemas/*.avsc
+- Supports enums, nullable fields, and schema evolution
+- Designed for Spark Structured Streaming ingestion (Milestone 2)
+
+
