@@ -75,7 +75,15 @@ courier_home_zone = {cid: random.choice(zones) for cid in couriers}
 order_events = []
 courier_events = []
 
-start_time = datetime.utcnow()
+# Configurable start time for reproducible peaks
+now = datetime.utcnow()
+start_hour = int(config.get("start_hour", 11))
+start_weekday = int(config.get("start_weekday", 5))
+
+start_time = now.replace(hour=start_hour, minute=0, second=0, microsecond=0)
+while start_time.weekday() != start_weekday:
+    start_time += timedelta(days=1)
+
 zone_centers = {
     z: (40.0 + i * 0.02, -3.7 + i * 0.02)
     for i, z in enumerate(zones)
@@ -279,13 +287,11 @@ for minute in range(config["simulation_minutes"]):
                 offline_time = delivered_time + timedelta(minutes=1)
 
             maybe_duplicate(create_courier_event("OFFLINE", offline_time), courier_events)
-            courier_is_online[courier_id] = False
 
             # Come back online later
-            comeback_delay = random.randint(5, 20)  # minutes
+            comeback_delay = random.randint(5, 20)
             online_again_time = offline_time + timedelta(minutes=comeback_delay)
             maybe_duplicate(create_courier_event("ONLINE", online_again_time), courier_events)
-            courier_is_online[courier_id] = True
 
 #---------
 
