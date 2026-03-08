@@ -248,6 +248,11 @@ for minute in range(config["simulation_minutes"]):
         def create_courier_event(event_type, event_time, order=None, lat=None, lon=None):
             ingest_time = maybe_late(event_time)
 
+            if event_type == "OFFLINE":
+                courier_is_online[courier_id] = False
+            elif event_type == "ONLINE":
+                courier_is_online[courier_id] = True
+
             return {
                 "schema_version": 1,
                 "event_id": str(uuid.uuid4()),
@@ -276,7 +281,10 @@ for minute in range(config["simulation_minutes"]):
                 courier_events
             )
 
-        maybe_duplicate(create_courier_event("ARRIVED_CUSTOMER", delivered_time, order_id), courier_events)
+        if delivery_minutes > 0:
+            maybe_duplicate(create_courier_event("ARRIVED_CUSTOMER", delivered_time, order_id), courier_events)
+        else:
+            pass
 
         if random.random() < config["courier_offline_probability"]:
             if (not skip_pickup) and delivery_minutes > 0 and random.random() < 0.5:
