@@ -39,8 +39,7 @@
     },
     {
       "name": "zone_id",
-      "type": ["null", "string"],
-      "default": null
+      "type": "string"
     },
     {
       "name": "latitude",
