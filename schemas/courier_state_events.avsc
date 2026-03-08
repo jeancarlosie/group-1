@@ -11,7 +11,7 @@
     },
     {
       "name": "event_id",
-      "type": "string",
+      "type": "string"
     },
     {
       "name": "event_type",
@@ -45,12 +45,12 @@
     {
       "name": "latitude",
       "type": ["null", "double"],
-      "default": null,
+      "default": null
     },
     {
       "name": "longitude",
       "type": ["null", "double"],
-      "default": null,
+      "default": null
     },
     {
       "name": "event_time",
