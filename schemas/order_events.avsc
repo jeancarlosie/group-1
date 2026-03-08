@@ -11,7 +11,8 @@
     },
     {
       "name": "event_id",
-      "type": "string"
+      "type": "string",
+      "default": ""
     },
     {
       "name": "event_type",
@@ -42,10 +43,6 @@
       "name": "courier_id",
       "type": ["null", "string"],
       "default": null
-    },
-    {
-      "name": "zone_id",
-      "type": "string"
     },
     {
       "name": "order_value",
