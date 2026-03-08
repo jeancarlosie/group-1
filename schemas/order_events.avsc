@@ -13,7 +13,6 @@
     {
       "name": "event_id",
       "type": "string",
-      "default": ""
     },
     {
       "name": "event_type",
