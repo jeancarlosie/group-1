@@ -50,9 +50,26 @@ restaurants = [
     for z in zones
     for i in range(config["restaurants_per_zone"])
 ]
+
+zone_weights = config.get("zone_demand_weights")
+if zone_weights is None:
+    zone_weights = [1.0] * len(zones)
+
+if len(zone_weights) != len(zones):
+    raise ValueError("zone_demand_weights length must be equal to the number of zones")
+
+# Restaurants mapping (for weighted selection)
+restaurants_by_zone = {z: [] for z in zones}
+for r in restaurants:
+    parts = r.split("_")
+    z = f"zone_{parts[2]}"
+    restaurants_by_zone[z].append(r)
+
 couriers = [f"courier_{i}" for i in range(config["couriers"])]
 courier_is_online = {cid: True for cid in couriers}
 courier_home_zone = {cid: random.choice(zones) for cid in couriers}
+
+# -------
 
 # Simulation
 order_events = []
@@ -103,6 +120,10 @@ for minute in range(config["simulation_minutes"]):
     if weekday >= 5:  # Saturday (5) or Sunday (6)
         multiplier *= 1.3
 
+    # Promo/surge period simulation
+    if random.random() < config.get("promo_probability", 0.0):
+        multiplier *= config.get("promo_multiplier", 1.0)
+    
     orders_this_minute = int(config["base_orders_per_minute"] * multiplier)
 
     for _ in range(orders_this_minute):
@@ -110,7 +131,8 @@ for minute in range(config["simulation_minutes"]):
         sequence = 1
 
         order_id = str(uuid.uuid4())
-        restaurant_id = random.choice(restaurants)
+        chosen_zone = random.choices(zones, weights=zone_weights, k=1)[0]
+        restaurant_id = random.choice(restaurants_by_zone[chosen_zone])
         zone_number = restaurant_id.split("_")[2]
         zone_id = f"zone_{zone_number}"
         online_pool = [cid for cid, online in courier_is_online.items() if online]
