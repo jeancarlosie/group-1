@@ -42,7 +42,7 @@
       "name": "zone_id",
       "type": ["null", "string"],
       "default": null
-    }
+    },
     {
       "name": "event_time",
       "type": {
