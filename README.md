@@ -124,6 +124,32 @@ Represents courier availability and operational delivery milestones.
 - `event_time` (timestamp-millis): event-time (truth)
 - `ingest_time` (timestamp-millis): used to simulate late data
 
+Schema Evolution & Versioning Strategy
+Both event schemas include a schema_version field to support forward evolution and long-term compatibility.
+To ensure backward compatibility and safe evolution, the following rules are applied:
+Backward Compatibility Rules
+
+1. Adding new fields
+- New fields must be defined as nullable unions:
+      ["null", "type"]
+- Must include "default": null
+- Ensures older consumers can safely read newer events
+
+2. Enum evolution
+- Enum values may only be appended
+- Existing enum values will never be removed or renamed
+- Prevents breaking historical consumers
+
+3. Field removal
+- Fields are never physically removed
+- Deprecated fields remain nullable
+
+4. Type changes
+- Breaking type changes are not allowed
+- Instead, a new field must be introduced
+
+5. Event ordering stability
+- event_sequence preserves intra-order ordering guarantees even as schemas evolve
 
 ## Data Generation & Realism
 ### Realistic Distributions
