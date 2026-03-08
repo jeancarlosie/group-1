@@ -12,7 +12,6 @@
     {
       "name": "event_id",
       "type": "string",
-      "default": ""
     },
     {
       "name": "event_type",
@@ -42,6 +41,16 @@
       "name": "zone_id",
       "type": ["null", "string"],
       "default": null
+    },
+    {
+      "name": "latitude",
+      "type": ["null", "double"],
+      "default": null,
+    },
+    {
+      "name": "longitude",
+      "type": ["null", "double"],
+      "default": null,
     },
     {
       "name": "event_time",
