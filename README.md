@@ -134,7 +134,7 @@ The generator supports:
 - Randomized prep and delivery durations
 - Order value distribution (uniform in current version)
 
-##Temporal Demand Modeling (Weekday vs Weekend)
+Temporal Demand Modeling (Weekday vs Weekend)
 - The generator explicitly models temporal demand variation:
 - Lunch peak multiplier (11:00–14:00)
 - Dinner peak multiplier (18:00–21:00)
