@@ -34,12 +34,12 @@ The **two feeds** are designed for the following purposes:
 ```
 | Member Name | Role | Tasks & Responsibilities |
 |-------|------|------------------|
-| Member 1 | Tech Lead / Architect | Overall design, schema + event model decisions |
-| Member 2 | Data Engineer | Generator development, JSON/AVRO output, testing |
-| Member 3 | Analytics Lead | Defines KPIs, planned streaming queries, use cases |
+| Member 1 | Tech Lead / Architect | Streaming architecture, feed separation, future Spark Structured Streaming integration |
+| Gonzalo Domínguez | Schema & Streaming Engineer | AVRO schemas design & implementation, event&ingest-time semantics, streaming correctness, compatibility and evolution strategies |
+| Member 3 | Data Engineer | Generator development, JSON/AVRO output, testing |
+| Member 4 | Analytics Lead | Defines KPIs, planned streaming queries, use cases |
+| Member 5 | Repository Manager | Repo structure, sample batch preparation, packaging |
 | Shamil Mukhamedov | Documentation | General README, assumptions, validation of edge cases |
-| Member 5 | blank role name| task |
-| Member 6 | role name| task/responsibilities |
 ```
 
 ## Project Structure
