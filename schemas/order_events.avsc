@@ -8,6 +8,7 @@
       "name": "schema_version",
       "type": "int",
       "default": 1
+      "doc": "Application-level schema version. AVRO compatibility is handled separately."
     },
     {
       "name": "event_id",
@@ -40,8 +41,13 @@
       "type": "string"
     },
     {
-      "name": "courier_id",
+      "name": "zone_id",
       "type": "string"
+    },
+    {
+      "name": "courier_id",
+      "type": ["null", "string"],
+      "default": null
     },
     {
       "name": "order_value",
