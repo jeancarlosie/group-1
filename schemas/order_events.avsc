@@ -7,7 +7,7 @@
     {
       "name": "schema_version",
       "type": "int",
-      "default": 1
+      "default": 1,
       "doc": "Application-level schema version. AVRO compatibility is handled separately."
     },
     {
