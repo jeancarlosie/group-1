@@ -6,9 +6,7 @@ import os
 from datetime import datetime, timedelta
 from fastavro import writer, parse_schema
 
-# ==============================
 # Load config
-# ==============================
 with open("config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
@@ -21,9 +19,7 @@ with open("../schemas/order_events.avsc") as f:
 with open("../schemas/courier_state_events.avsc") as f:
     courier_schema = parse_schema(json.load(f))
 
-# ==============================
 # Helpers
-# ==============================
 def millis(dt):
     return int(dt.timestamp() * 1000)
 
@@ -38,9 +34,7 @@ def maybe_duplicate(event, collection):
     if random.random() < config["duplicate_probability"]:
         collection.append(event.copy())
 
-# ==============================
 # Static Entities
-# ==============================
 zones = [f"zone_{i}" for i in range(config["zones"])]
 restaurants = [
     f"rest_{z}_{i}"
@@ -49,9 +43,7 @@ restaurants = [
 ]
 couriers = [f"courier_{i}" for i in range(config["couriers"])]
 
-# ==============================
 # Simulation
-# ==============================
 order_events = []
 courier_events = []
 
@@ -60,7 +52,7 @@ start_time = datetime.utcnow()
 for minute in range(config["simulation_minutes"]):
     simulated_time = start_time + timedelta(minutes=minute)
 
-    # ---- Lunch / Dinner Peaks ----
+    # Lunch / Dinner Peaks
     hour = simulated_time.hour
     multiplier = 1
 
@@ -80,30 +72,28 @@ for minute in range(config["simulation_minutes"]):
         courier_id = random.choice(couriers)
         order_value = round(random.uniform(10, 50), 2)
 
-        # ---- Durations ----
+        # Durations
         prep_minutes = random.randint(5, 20)
         delivery_minutes = random.randint(10, 30)
 
-        # ---- Anomaly injection ----
+        # Anomaly injection
         if random.random() < config["anomaly_probability"]:
             delivery_minutes = -5  # impossible duration
 
-        # ---- Event timeline ----
+        # Event timeline
         created_time = simulated_time
         accepted_time = created_time + timedelta(minutes=1)
         prep_done_time = accepted_time + timedelta(minutes=prep_minutes)
         pickup_time = prep_done_time + timedelta(minutes=5)
         delivered_time = pickup_time + timedelta(minutes=delivery_minutes)
 
-        # ---- Missing step simulation ----
+        # Missing step simulation
         skip_pickup = random.random() < config["missing_step_probability"]
 
-        # ---- Cancellation simulation ----
+        # Cancellation simulation
         cancelled = random.random() < config["cancellation_probability"]
 
-        # ============================
         # ORDER EVENTS
-        # ============================
 
         def create_order_event(event_type, event_time, courier=None):
             ingest_time = maybe_late(event_time)
@@ -136,9 +126,7 @@ for minute in range(config["simulation_minutes"]):
 
         maybe_duplicate(create_order_event("DELIVERED", delivered_time, courier_id), order_events)
 
-        # ============================
         # COURIER EVENTS
-        # ============================
 
         def create_courier_event(event_type, event_time, order=None):
             ingest_time = maybe_late(event_time)
@@ -165,9 +153,7 @@ for minute in range(config["simulation_minutes"]):
         if random.random() < config["courier_offline_probability"]:
             maybe_duplicate(create_courier_event("OFFLINE", delivered_time + timedelta(minutes=1)), courier_events)
 
-# ==============================
 # Write JSON
-# ==============================
 with open("../samples/json/order_events_sample.jsonl", "w") as f:
     for e in order_events:
         f.write(json.dumps(e) + "\n")
@@ -176,9 +162,7 @@ with open("../samples/json/courier_state_events_sample.jsonl", "w") as f:
     for e in courier_events:
         f.write(json.dumps(e) + "\n")
 
-# ==============================
 # Write AVRO
-# ==============================
 with open("../samples/avro/order_events_sample.avro", "wb") as out:
     writer(out, order_schema, order_events)
 
