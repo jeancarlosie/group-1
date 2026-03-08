@@ -11,6 +11,8 @@ base_orders_per_minute: 5
 lunch_peak_multiplier: 2.0
 dinner_peak_multiplier: 2.5
 
+promo_probability: 0.15
+promo_multiplier: 1.6
 cancellation_probability: 0.1
 duplicate_probability: 0.05
 late_event_probability: 0.1
