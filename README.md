@@ -29,7 +29,7 @@ The two feeds are designed for the following purposes:
 
 | Member Name | Role | Tasks & Responsibilities |
 |-------------|------|--------------------------|
-| Member 1 | Tech Lead / Architect | Streaming architecture, feed separation, future Spark Structured Streaming integration |
+| Paul Khairallah | Tech Lead / Architect | Streaming architecture, feed separation, future Spark Structured Streaming integration |
 | Gonzalo Domínguez | Schema & Streaming Engineer | AVRO schema design & implementation, event & ingest-time semantics, streaming correctness, compatibility and evolution strategies |
 | Jean Carlos | Data Engineer | Generator development, JSON/AVRO output, testing |
 | Eva Yang Garrudo | Analytics Lead | Defines KPIs, planned streaming queries, use cases |
