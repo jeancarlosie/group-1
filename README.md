@@ -33,7 +33,7 @@ The two feeds are designed for the following purposes:
 | Gonzalo Domínguez | Schema & Streaming Engineer | AVRO schema design & implementation, event & ingest-time semantics, streaming correctness, compatibility and evolution strategies |
 | Jean Carlos | Data Engineer | Generator development, JSON/AVRO output, testing |
 | Eva Yang Garrudo | Analytics Lead | Defines KPIs, planned streaming queries, use cases |
-| Member 5 | Repository Manager | Repo structure, sample batch preparation, packaging |
+| Alejandra Gómez | Repository Manager | Repo structure, sample batch preparation, packaging |
 | Shamil Mukhamedov | Documentation | General README, assumptions, validation of edge cases |
 
 ---
