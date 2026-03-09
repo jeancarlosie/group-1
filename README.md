@@ -261,7 +261,7 @@ This will:
 
 ### Output files
 After execution, sample data is written to:
-
+```
 samples/
 ├── json/
 │   ├── order_events_sample.jsonl
@@ -269,12 +269,13 @@ samples/
 └── avro/
     ├── order_events_sample.avro
     └── courier_state_events_sample.avro
+```
 
-JSONL Format
+#### JSONL Format
 - One event per line
 - Useful for manual inspection and quick ingestion testing
 
-AVRO Format
+#### AVRO Format
 - Schema-enforced using /schemas/*.avsc
 - Supports enums, nullable fields, and schema evolution
 - Designed for Spark Structured Streaming ingestion (Milestone 2)
