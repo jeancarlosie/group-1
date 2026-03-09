@@ -1,17 +1,16 @@
 # Generator
 
-This folder contains the synthetic streaming data generator for the food delivery simulation pipeline. It produces realistic order lifecycle and courier state events — including intentional anomalies and data quality issues — to be used for downstream Kafka ingestion and Spark Structured Streaming processing.
+Synthetic streaming data generator for the food delivery simulation pipeline. Produces order lifecycle and courier state events, including intentional anomalies and data quality issues (written as `.jsonl` and `.avro` files).
 
 ---
 
-## Overview
+## Quick Start
+```bash
+pip install -r requirements.txt
+python generate.py
+```
 
-The generator simulates a food delivery platform across multiple zones and restaurants. It outputs two event streams:
-
-- **Order Events** — lifecycle events per order (created → accepted → prepared → picked up → delivered / cancelled)
-- **Courier State Events** — courier activity events (online, arrived at restaurant, picked up order, arrived at customer, offline)
-
-Both streams are written as `.jsonl` (JSON Lines) and `.avro` files.
+Output is written to `../samples/json/` and `../samples/avro/`.
 
 ---
 
@@ -19,50 +18,73 @@ Both streams are written as `.jsonl` (JSON Lines) and `.avro` files.
 
 | File | Description |
 |------|-------------|
-| `generate.py` | Main script that runs the simulation and writes output files |
-| `config.yaml` | Simulation parameters (zones, couriers, probabilities, etc.) |
-| `requirements.txt` | Python dependencies |
+| `generate.py` | Main simulation script |
+| `config.yaml` | All simulation parameters |
+| `requirements.txt` | Python dependencies (`fastavro`, `pyyaml`) |
 
 ---
 
 ## Configuration
 
-All simulation behavior is controlled via `config.yaml`:
+All behaviour is controlled via `config.yaml`. Parameters are grouped below by concern.
+
+### Timing
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `start_hour` | `11` | Simulation start hour (UTC, 0–23) |
+| `start_weekday` | `5` | Simulation start day (0 = Monday, 6 = Sunday) |
+| `simulation_minutes` | `10` | Total duration of the simulation |
+
+### Platform Scale
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `zones` | `5` | Number of geographic zones |
-| `restaurants_per_zone` | `20` | Restaurants per zone (100 total) |
+| `zone_demand_weights` | `[1.0, 1.0, 1.8, 0.7, 1.3]` | Relative demand weight per zone (length must equal `zones`) |
+| `restaurants_per_zone` | `20` | Restaurants per zone |
 | `couriers` | `50` | Number of active couriers |
-| `simulation_minutes` | `10` | Duration of the simulation in minutes |
-| `base_orders_per_minute` | `5` | Baseline order rate per minute |
-| `lunch_peak_multiplier` | `2.0` | Order rate multiplier during lunch (11:00–14:00) |
-| `dinner_peak_multiplier` | `2.5` | Order rate multiplier during dinner (18:00–21:00) |
-| `cancellation_probability` | `0.1` | Probability an order gets cancelled after acceptance |
-| `duplicate_probability` | `0.05` | Probability of a duplicate event being emitted |
-| `late_event_probability` | `0.1` | Probability an event arrives with a delay (2–10 min) |
-| `missing_step_probability` | `0.05` | Probability the `PICKED_UP` step is skipped |
-| `anomaly_probability` | `0.05` | Probability of an impossible delivery duration (negative value) |
-| `courier_offline_probability` | `0.05` | Probability a courier goes offline after delivery |
+
+### Demand Shaping
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `base_orders_per_minute` | `5` | Baseline order rate |
+| `lunch_peak_multiplier` | `2.0` | Rate multiplier during lunch (11:00–14:00) |
+| `dinner_peak_multiplier` | `2.5` | Rate multiplier during dinner (18:00–21:00) |
+| `promo_probability` | `0.15` | Probability of a promo surge occurring each minute |
+| `promo_multiplier` | `1.6` | Additional rate multiplier during a promo surge |
+
+> Weekday vs. weekend: simulations starting on Saturday/Sunday (`start_weekday` ≥ 5) apply an additional 1.3× demand boost on top of peak multipliers.
+
+### Streaming Edge Cases
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `cancellation_probability` | `0.1` | Probability an order is cancelled at some point in its lifecycle |
+| `duplicate_probability` | `0.05` | Probability a duplicate event (same `event_id`) is emitted |
+| `late_event_probability` | `0.1` | Probability an event's `ingest_time` is delayed 2–10 min behind `event_time` |
+| `missing_step_probability` | `0.05` | Probability the `PICKED_UP` / `PICKED_UP_ORDER` step is skipped |
+| `anomaly_probability` | `0.05` | Probability of an anomalous delivery duration (see below) |
+| `courier_offline_probability` | `0.05` | Probability a courier goes offline mid-delivery or post-delivery |
 
 ---
 
 ## Data Quality Injections
 
-The generator deliberately injects the following data quality issues to simulate real-world streaming challenges:
-
-- **Duplicates** — the same event may be emitted more than once
-- **Late arrivals** — `ingest_time` may lag behind `event_time` by 2–10 minutes
-- **Missing steps** — the `PICKED_UP` / `PICKED_UP_ORDER` step may be absent
-- **Anomalies** — `delivery_minutes` can be set to `-5` (impossible value)
-- **Cancellations** — orders may be cancelled after restaurant acceptance, truncating the event sequence
+| Issue | Behaviour |
+|-------|-----------|
+| **Duplicates** | Exact copy of an event re-emitted (same `event_id`) |
+| **Late arrivals** | `ingest_time` lags `event_time` by 2–10 minutes |
+| **Missing steps** | `PICKED_UP` / `PICKED_UP_ORDER` absent from the sequence |
+| **Anomalies** | `delivery_minutes` is negative (time inversion), 1–5 min (impossibly fast), or 60–120 min (unrealistically slow) |
+| **Cancellations** | Order cancelled after acceptance, after prep, or rarely after pickup |
+| **Courier offline** | Courier goes `OFFLINE` mid-delivery or after drop-off, followed by a later `ONLINE` event |
 
 ---
 
 ## Output
-
-Running the script generates the following files:
-
+```
 samples/
 ├── json/
 │   ├── order_events_sample.jsonl
@@ -70,52 +92,46 @@ samples/
 └── avro/
     ├── order_events_sample.avro
     └── courier_state_events_sample.avro
+```
 
-Avro serialization uses schemas defined in `../schemas/order_events.avsc` and `../schemas/courier_state_events.avsc`.
+- **JSONL** — one event per line, useful for manual inspection
+- **AVRO** — schema-enforced using `../schemas/order_events.avsc` and `../schemas/courier_state_events.avsc`
 
----
-
-## Usage
-
-### Install dependencies
-
-pip install -r requirements.txt
-
-### Run the generator
-
-python generate.py
-
-Output files will be written to `../samples/json/` and `../samples/avro/`.
+Events within each file are sorted by `ingest_time` to simulate broker arrival order.
 
 ---
 
-## Event Schema
+## Event Schemas
 
-### Order Event Fields
+### Order Events
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `schema_version` | int | Schema version number |
-| `event_id` | string (UUID) | Unique identifier for this event |
-| `event_type` | string | One of: `ORDER_CREATED`, `RESTAURANT_ACCEPTED`, `CANCELLED`, `PREP_DONE`, `COURIER_ASSIGNED`, `PICKED_UP`, `DELIVERED` |
-| `order_id` | string (UUID) | Identifier of the order |
+| `event_id` | string (UUID) | Unique event identifier |
+| `event_sequence` | int | Intra-order sequence number for ordering guarantees |
+| `event_type` | enum | `ORDER_CREATED` · `RESTAURANT_ACCEPTED` · `PREP_STARTED`* · `PREP_DONE` · `COURIER_ASSIGNED` · `PICKED_UP` · `DELIVERED` · `CANCELLED` |
+| `order_id` | string (UUID) | Stable order identifier |
 | `restaurant_id` | string | Restaurant that received the order |
-| `courier_id` | string / null | Assigned courier (null before assignment) |
-| `zone_id` | string | Geographic zone of the order |
-| `order_value` | float | Monetary value of the order (€10–€50) |
-| `event_time` | long (ms) | Logical time the event occurred |
-| `ingest_time` | long (ms) | Time the event was ingested (may be late) |
+| `courier_id` | string / null | Assigned courier — null before `COURIER_ASSIGNED` |
+| `zone_id` | string | Geographic zone |
+| `order_value` | float / null | Order value in € (lognormal, clamped to €8–€80) |
+| `event_time` | long (ms) | Logical event time |
+| `ingest_time` | long (ms) | Broker arrival time — may be later than `event_time` |
 
-### Courier State Event Fields
+*`PREP_STARTED` is emitted for ~70% of orders.
+
+### Courier State Events
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `schema_version` | int | Schema version number |
-| `event_id` | string (UUID) | Unique identifier for this event |
-| `event_type` | string | One of: `ONLINE`, `ARRIVED_RESTAURANT`, `PICKED_UP_ORDER`, `ARRIVED_CUSTOMER`, `OFFLINE` |
+| `event_id` | string (UUID) | Unique event identifier |
+| `event_type` | enum | `ONLINE` · `OFFLINE` · `ARRIVED_RESTAURANT` · `PICKED_UP_ORDER` · `LOCATION_UPDATE` · `ARRIVED_CUSTOMER` |
 | `courier_id` | string | Courier identifier |
-| `order_id` | string / null | Associated order (null for `ONLINE` / `OFFLINE`) |
+| `order_id` | string / null | Associated order — null for `ONLINE` / `OFFLINE` |
 | `zone_id` | string | Geographic zone |
-| `event_time` | long (ms) | Logical time the event occurred |
-| `ingest_time` | long (ms) | Time the event was ingested (may be late) |
-
+| `latitude` | float / null | Courier latitude — present on `LOCATION_UPDATE` events |
+| `longitude` | float / null | Courier longitude — present on `LOCATION_UPDATE` events |
+| `event_time` | long (ms) | Logical event time |
+| `ingest_time` | long (ms) | Broker arrival time — may be later than `event_time` |
