@@ -1,16 +1,17 @@
 # Food Delivery Real-time Analytics Pipeline
 
 ## General Project Overview
+
 On-demand food delivery platforms such as Uber Eats, Glovo, and Deliveroo operate as real-time marketplaces where the following occurs:
-1) Customers place orders
-2) Restaurants prepare meals
-3) Couriers deliver
-4) The platform continuously optimizes dispatch, ETAs, cancellations, and operational health
 
-Our project simulates the aforementioned ecosystem by utilizing two streaming event feeds
-and generating synthetic **JSON + AVRO** events with realistic patterns and edge cases
+1. Customers place orders
+2. Restaurants prepare meals
+3. Couriers deliver
+4. The platform continuously optimizes dispatch, ETAs, cancellations, and operational health
 
-The **two feeds** are designed for the following purposes:
+Our project simulates the aforementioned ecosystem by utilizing two streaming event feeds and generating synthetic **JSON + AVRO** events with realistic patterns and edge cases.
+
+The two feeds are designed for the following purposes:
 - Event-time processing
 - Late data handling
 - Windowed analytics
@@ -18,26 +19,29 @@ The **two feeds** are designed for the following purposes:
 
 **This current delivery for the project's first milestone will include:**
 - Two distinct event streams modeling demand and supply
-- AVRO schemas for both streams (with enums, optional fields, and schema_version)
+- AVRO schemas for both streams (with enums, optional fields, and `schema_version`)
 - Configurable Python generator producing JSONL and AVRO samples
-- Realistic streaming edge cases (late, duplicates, missing steps, anomalies)
+- Realistic streaming edge cases (late events, duplicates, missing steps, anomalies)
 
+---
 
 ## Team Structure
 
 | Member Name | Role | Tasks & Responsibilities |
-|-------|------|------------------|
+|-------------|------|--------------------------|
 | Member 1 | Tech Lead / Architect | Streaming architecture, feed separation, future Spark Structured Streaming integration |
-| Gonzalo Domínguez | Schema & Streaming Engineer | AVRO schemas design & implementation, event&ingest-time semantics, streaming correctness, compatibility and evolution strategies |
+| Gonzalo Domínguez | Schema & Streaming Engineer | AVRO schema design & implementation, event & ingest-time semantics, streaming correctness, compatibility and evolution strategies |
 | Jean Carlos | Data Engineer | Generator development, JSON/AVRO output, testing |
-| Eva Yang Garrudo| Analytics Lead | Defines KPIs, planned streaming queries, use cases |
-| Alejandra Gómez | Repository Manager | Repo structure, sample batch preparation, packaging |
+| Eva Yang Garrudo | Analytics Lead | Defines KPIs, planned streaming queries, use cases |
+| Member 5 | Repository Manager | Repo structure, sample batch preparation, packaging |
 | Shamil Mukhamedov | Documentation | General README, assumptions, validation of edge cases |
+
+---
 
 ## Project Structure
 ```
 ├── generator
-│   ├── README.md        # README file exclusively created for the generator, the general README.md can be found below
+│   ├── README.md        # README exclusively for the generator
 │   ├── config.yaml
 │   ├── generate.py
 │   └── requirements.txt
@@ -53,30 +57,35 @@ The **two feeds** are designed for the following purposes:
 └── README.md
 ```
 
-
+---
 
 ## Design Notes: Feeds, Fields, Events
 
 ### Why Two Feeds?
+
 We intentionally separate the platform into two joinable streams:
-1) Order Events (Demand + lifecycle + business metrics) 
-2) Courier State Events (Supply + operational signals)
+
+1. **Order Events** — demand, lifecycle, and business metrics
+2. **Courier State Events** — supply and operational signals
 
 This matches real-world architectures where order lifecycle and courier telemetry are produced by different services and joined downstream using stable identifiers.
 
-**Join keys**
-- `order_id` joins order lifecycle ↔ courier delivery actions
-- `courier_id` links courier behavior across orders
-- `zone_id` supports aggregation and partition strategies
-- `restaurant_id` supports restaurant-level SLA analytics
+**Join keys:**
+- `order_id` — joins order lifecycle ↔ courier delivery actions
+- `courier_id` — links courier behavior across orders
+- `zone_id` — supports aggregation and partition strategies
+- `restaurant_id` — supports restaurant-level SLA analytics
 
-### Feed A — `OrderEvent` (order_events.avsc)
+---
+
+### Feed A — `OrderEvent` (`order_events.avsc`)
+
 Represents the lifecycle of an order.
 
 **Event Types**
 - `ORDER_CREATED`
 - `RESTAURANT_ACCEPTED`
-- `PREP_STARTED` *(schema supports it even if generator doesn't always emit it)*
+- `PREP_STARTED` *(schema supports it; emitted for ~70% of orders)*
 - `PREP_DONE`
 - `COURIER_ASSIGNED`
 - `PICKED_UP`
@@ -96,13 +105,16 @@ Represents the lifecycle of an order.
 - `event_time` (timestamp-millis): event-time for analytics
 - `ingest_time` (timestamp-millis): arrival time (used to simulate late/out-of-order events)
 
-### Feed B — `CourierStateEvent` (courier_state_events.avsc)
+---
+
+### Feed B — `CourierStateEvent` (`courier_state_events.avsc`)
+
 Represents courier availability and operational delivery milestones.
 
 **Event Types**
 - `ONLINE`
 - `OFFLINE`
-- `LOCATION_UPDATE` *(schema supports it; generator focuses on milestones)*
+- `LOCATION_UPDATE` *(schema supports it; emitted mid-delivery when pickup is present)*
 - `ARRIVED_RESTAURANT`
 - `PICKED_UP_ORDER`
 - `ARRIVED_CUSTOMER`
@@ -119,82 +131,86 @@ Represents courier availability and operational delivery milestones.
 - `event_time` (timestamp-millis): event-time (truth)
 - `ingest_time` (timestamp-millis): used to simulate late data
 
+---
+
 ### Schema Evolution & Versioning Strategy
-Both event schemas include a schema_version field to support forward evolution and long-term compatibility.
-To ensure backward compatibility and safe evolution, the following rules are applied:
 
-#### Backward Compatibility Rules
+Both event schemas include a `schema_version` field to support forward evolution and long-term compatibility. To ensure backward compatibility and safe evolution, the following rules are applied:
 
-1. Adding new fields
-- New fields must be defined as nullable unions:
-      ["null", "type"]
-- Must include "default": null
+**1. Adding new fields**
+- New fields must be defined as nullable unions: `["null", "type"]`
+- Must include `"default": null`
 - Ensures older consumers can safely read newer events
 
-2. Enum evolution
+**2. Enum evolution**
 - Enum values may only be appended
 - Existing enum values will never be removed or renamed
 - Prevents breaking historical consumers
 
-3. Field removal
+**3. Field removal**
 - Fields are never physically removed
 - Deprecated fields remain nullable
 
-4. Type changes
+**4. Type changes**
 - Breaking type changes are not allowed
 - Instead, a new field must be introduced
 
-5. Event ordering stability
-- event_sequence preserves intra-order ordering guarantees even as schemas evolve
+**5. Event ordering stability**
+- `event_sequence` preserves intra-order ordering guarantees even as schemas evolve
+
+---
 
 ## Data Generation & Realism
+
 ### Realistic Distributions
+
 The generator supports:
 - Lunch and dinner peaks (multipliers)
-- Zone-level skew via restaurant assignment
-- Configurable number of zones/restaurants/couriers
+- Zone-level skew via weighted restaurant assignment
+- Configurable number of zones, restaurants, and couriers
 - Randomized prep and delivery durations
 - Order value drawn from a lognormal distribution (clamped to €8–€80)
 
-### Temporal Demand Modeling (Weekday vs Weekend)
+### Temporal Demand Modeling (Weekday vs. Weekend)
+
 The generator explicitly models temporal demand variation:
 - Lunch peak multiplier (11:00–14:00)
 - Dinner peak multiplier (18:00–21:00)
-- Additional weekend demand boost (weekday >= 5)
+- Additional 1.3× weekend demand boost (`start_weekday` ≥ 5)
 - Optional promotional surge periods
 
-The simulation start day is configurable via:
-start_weekday (0 = Monday, 6 = Sunday)
+The simulation start day is configurable via `start_weekday` (0 = Monday, 6 = Sunday).
 
-To demonstrate weekday vs weekend differences:
-- Set start_weekday: 2 (Wednesday) → weekday behavior
-- Set start_weekday: 6 (Sunday) → weekend behavior
+To demonstrate weekday vs. weekend differences:
+- Set `start_weekday: 2` (Wednesday) → weekday behavior
+- Set `start_weekday: 6` (Sunday) → weekend behavior
 
-Weekend simulations produce higher demand due to the additional multiplier, resulting in:
-Increased orders per minute
-More courier assignments
-Higher total event volume
-
-For milestone validation, datasets can be generated under both configurations to illustrate temporal behavior differences.
+Weekend simulations produce higher demand due to the additional multiplier, resulting in more orders per minute, more courier assignments, and higher total event volume. For milestone validation, datasets can be generated under both configurations to illustrate temporal behavior differences.
 
 ### Streaming Correctness Edge Cases
-To demonstrate watermarking, deduplication, and event-time correctness later, we inject:
+
+To demonstrate watermarking, deduplication, and event-time correctness, we inject:
 - **Late/out-of-order events** (`late_event_probability`)
 - **Duplicates** (`duplicate_probability`)
-- **Missing steps** (e.g., DELIVERED without PICKED_UP) (`missing_step_probability`)
+- **Missing steps** (`missing_step_probability`) — e.g. `DELIVERED` without `PICKED_UP`
 - **Anomalous durations** (`anomaly_probability`) — negative (time inversion), 1–5 min (impossibly fast), or 60–120 min (unrealistically slow)
 - **Courier offline mid-delivery** (`courier_offline_probability`)
 - **Cancellations** (`cancellation_probability`)
 
+---
+
 ## Assumptions
-- **Zones are abstract** (e.g., "zone_0..zone_4"), not real coordinates.
-- Orders are assigned to a restaurant; the zone is derived from restaurant.
-- Each order chooses a courier id early (for simulation convenience); lifecycle events may still omit courier_id until assignment stage.
+
+- **Zones are abstract** (e.g., `zone_0`..`zone_4`), not real coordinates.
+- Orders are assigned to a restaurant; the zone is derived from the restaurant.
+- Each order selects a courier ID early in the simulation for convenience; lifecycle events may still omit `courier_id` until the assignment stage.
 - Late data is simulated by shifting `ingest_time` relative to `event_time` (2–10 minutes).
-- Duplicates are exact copies (same event_id), enabling realistic dedup logic in streaming.
+- Duplicates are exact copies (same `event_id`), enabling realistic dedup logic in streaming.
 - The generator is designed for correctness demonstrations, not perfect behavioral realism.
 
-## Planned Analytics (Far More Applicable for Second Milestone)
+---
+
+## Planned Analytics *(Milestone 2)*
 
 ### Basic (Windowed KPIs)
 - Orders per zone per 1–5 minute tumbling window
@@ -202,65 +218,59 @@ To demonstrate watermarking, deduplication, and event-time correctness later, we
 - Cancellation rate per zone window
 
 ### Intermediate (Stateful / Session)
-- Courier online sessions (ONLINE → OFFLINE session windows)
-- Demand–supply health per zone:
-  - orders awaiting pickup vs active couriers
-- Restaurant SLA monitoring:
-  - prep time percentiles per restaurant/zone (event-time)
+- Courier online sessions (`ONLINE` → `OFFLINE` session windows)
+- Demand–supply health per zone (orders awaiting pickup vs. active couriers)
+- Restaurant SLA monitoring (prep time percentiles per restaurant/zone using event-time)
 
-### Advanced (Anomaly/Fraud/Forecast)
+### Advanced (Anomaly / Fraud / Forecast)
 - Delivery time anomaly detection per zone (with late data)
-- Fraud heuristics:
-  - repeated cancellations by zone/user-device proxy (future extension)
-- Surge indicator:
-  - near-real-time detection of overload zones using recent trends
+- Fraud heuristics: repeated cancellations by zone/user-device proxy *(future extension)*
+- Surge indicator: near-real-time detection of overloaded zones using recent trends
+
+---
 
 ## How to Run (Generator)
+
 ### Install dependencies
 ```bash
 pip install fastavro pyyaml
 ```
 
-### Configure the Simulation
-generator/config.yaml
+### Configure the simulation
 
-You can modify:
-- Core simulation parameters
-- simulation_minutes → total duration of the simulation
-- base_orders_per_minute → baseline demand rate
-- zones, restaurants_per_zone, couriers → platform scale
+Edit `generator/config.yaml`. Key parameters:
 
-Demand shaping
-- lunch_peak_multiplier
-- dinner_peak_multiplier
-- promo_probability
-- promo_multiplier
-- zone_demand_weights
-- Streaming edge-case probabilities
-- late_event_probability
-- duplicate_probability
-- missing_step_probability
-- anomaly_probability
-- cancellation_probability
-- courier_offline_probability
+**Core simulation**
+- `simulation_minutes` — total duration of the simulation
+- `base_orders_per_minute` — baseline demand rate
+- `zones`, `restaurants_per_zone`, `couriers` — platform scale
 
-Reproducible timing
-- start_hour
-- start_weekday
+**Demand shaping**
+- `lunch_peak_multiplier`, `dinner_peak_multiplier`
+- `promo_probability`, `promo_multiplier`
+- `zone_demand_weights`
+
+**Streaming edge-case probabilities**
+- `late_event_probability`, `duplicate_probability`, `missing_step_probability`
+- `anomaly_probability`, `cancellation_probability`, `courier_offline_probability`
+
+**Reproducible timing**
+- `start_hour`, `start_weekday`
 
 ### Run the generator
+```bash
 python generator/generate.py
+```
 
 This will:
-- Load configuration from config.yaml
-- Load AVRO schemas from /schemas
-- Simulate order + courier activity
+- Load configuration from `config.yaml`
+- Load AVRO schemas from `/schemas`
+- Simulate order and courier activity
 - Inject streaming edge cases
 - Generate JSONL and AVRO outputs
-- Sort events by ingest_time to simulate broker arrival order
+- Sort events by `ingest_time` to simulate broker arrival order
 
 ### Output files
-After execution, sample data is written to:
 ```
 samples/
 ├── json/
@@ -271,11 +281,6 @@ samples/
     └── courier_state_events_sample.avro
 ```
 
-#### JSONL Format
-- One event per line
-- Useful for manual inspection and quick ingestion testing
+**JSONL** — one event per line, useful for manual inspection and quick ingestion testing
 
-#### AVRO Format
-- Schema-enforced using /schemas/*.avsc
-- Supports enums, nullable fields, and schema evolution
-- Designed for Spark Structured Streaming ingestion (Milestone 2)
+**AVRO** — schema-enforced using `/schemas/*.avsc`; supports enums, nullable fields, and schema evolution; designed for Spark Structured Streaming ingestion *(Milestone 2)*
