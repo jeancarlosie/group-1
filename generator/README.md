@@ -41,7 +41,7 @@ All behaviour is controlled via `config.yaml`. Parameters are grouped below by c
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `zones` | `5` | Number of geographic zones |
-| `zone_demand_weights` | `[1.0, 1.0, 1.8, 0.7, 1.3]` | Relative demand weight per zone (length must equal `zones`) |
+| `zone_demand_weights` | `[1.0, 1.0, 1.8, 0.7, 1.3]` | Relative demand weight per zone (length must equal `zones` and if omitted, equal weights are applied across all zones) |
 | `restaurants_per_zone` | `20` | Restaurants per zone |
 | `couriers` | `50` | Number of active couriers |
 
@@ -109,7 +109,7 @@ Events within each file are sorted by `ingest_time` to simulate broker arrival o
 |-------|------|-------------|
 | `schema_version` | int | Schema version number |
 | `event_id` | string (UUID) | Unique event identifier |
-| `event_sequence` | int | Intra-order sequence number for ordering guarantees |
+| `event_sequence` | int / null | Intra-order sequence number for ordering guarantees |
 | `event_type` | enum | `ORDER_CREATED` · `RESTAURANT_ACCEPTED` · `PREP_STARTED`* · `PREP_DONE` · `COURIER_ASSIGNED` · `PICKED_UP` · `DELIVERED` · `CANCELLED` |
 | `order_id` | string (UUID) | Stable order identifier |
 | `restaurant_id` | string | Restaurant that received the order |
