@@ -177,7 +177,7 @@ The producers intentionally inject the following anomalies to stress-test the pi
 | Edge case | Probability | How it's handled |
 |---|---|---|
 | Late / out-of-order events | 10% | `ingest_time` shifted 2–10 min after `event_time`; watermarking handles late data |
-| Duplicate events | 5% | Same `event_id` re-emitted; deduplicated downstream via `.dropDuplicates(["event_id"])` |
+| Duplicate events | 5% | Same event_id re-emitted; identifiable downstream via event_id field; deduplication applied at read time on static Parquet files |
 | Missing steps | 5% | e.g. `DELIVERED` without `PICKED_UP`; handled by AVRO `PERMISSIVE` mode |
 | Anomalous durations | 5% | Negative, sub-1-min, or 60–120 min delivery times; visible in analytics as outliers |
 | Courier offline mid-delivery | 5% | `OFFLINE` during active order; tests supply-demand imbalance query |
