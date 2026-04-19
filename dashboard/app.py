@@ -1,3 +1,6 @@
+# Requires active Spark pipeline writing to Azure Blob Storage (group01output).
+# Run from Colab notebook for live data.
+
 import io
 import pandas as pd
 import plotly.express as px
